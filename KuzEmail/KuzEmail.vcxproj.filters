@@ -19,6 +19,9 @@
     <Filter Include="Header Files\imgui">
       <UniqueIdentifier>{b23041a6-13d6-4aa5-b919-3c77ab3e8902}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\minunit">
+      <UniqueIdentifier>{b86ff56f-42ae-4405-b1a5-80ed66e1e66d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -70,6 +73,12 @@
     </ClInclude>
     <ClInclude Include="vendor\imgui\imgui.h">
       <Filter>Header Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\minunit\minunit.h">
+      <Filter>Header Files\minunit</Filter>
+    </ClInclude>
+    <ClInclude Include="kuzTester.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

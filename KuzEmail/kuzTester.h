@@ -1,13 +1,21 @@
 #include "minunit.h"
 
+#include <iostream>
+
 //Example test checking if variable one has the value 1
 MU_TEST(test_example1) {
-	int one = 1;
-	mu_check(one == 1);
+	std::cout << "Test Running example test 1:" << std::endl;
+
+	//Some code here
+	std::cout << "Hello World" << std::endl;
+
+	//Some check here
+	mu_check(true);
 }
 
 //Example test comparing two strings
 MU_TEST(test_example2) {
+	std::cout << "Test Running example test 2:" << std::endl;
 	char one[] = "Hello";
 	char two[] = "Heoo";
 	mu_check(one == two);

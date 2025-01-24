@@ -1,4 +1,4 @@
-class KUZ:
+class Kuznechik:
     # kuznechik's pi s-boxes as specified
     PI = [252, 238, 221, 17, 207, 110, 49, 22, 251, 196, 250, 218, 35, 197, 4, 77,
           233, 119, 240, 219, 147, 46, 153, 186, 23, 54, 241, 187, 20, 205, 95, 193,
@@ -66,9 +66,9 @@ class KUZ:
         """Mods binary polynomial p by m
         returns p(x) mod m(x)
         """
-        bits_m = KUZ.count_bits(m)
+        bits_m = Kuznechik.count_bits(m)
         while True:
-            bits_p = KUZ.count_bits(p)
+            bits_p = Kuznechik.count_bits(p)
             if bits_p < bits_m:
                 return p
             mod_shift = m << (bits_p - bits_m)
@@ -85,7 +85,7 @@ class KUZ:
         subbed_bytes = 0
         for i in reversed(range(16)):
             subbed_bytes <<= 8
-            subbed_bytes += KUZ.PI[ibytes >> (8 * i) & 0xff]
+            subbed_bytes += Kuznechik.PI[ibytes >> (8 * i) & 0xff]
         return subbed_bytes
 
     @staticmethod
@@ -97,7 +97,7 @@ class KUZ:
         subbed_bytes = 0
         for i in reversed(range(16)):
             subbed_bytes <<= 8
-            subbed_bytes += KUZ.INV_PI[ibytes >> (8 * i) & 0xff]
+            subbed_bytes += Kuznechik.INV_PI[ibytes >> (8 * i) & 0xff]
         return subbed_bytes
 
     """Linear Transformation Functions"""
@@ -108,8 +108,8 @@ class KUZ:
         input 8-bit ints representing binary polynomials p1(x), p2(x)
         returns p1(x) * p2(x) mod p(x)
         """
-        p = KUZ.gf2_mult(p1, p2)
-        return KUZ.gf2_mod(p, int('111000011', 2))
+        p = Kuznechik.gf2_mult(p1, p2)
+        return Kuznechik.gf2_mod(p, int('111000011', 2))
 
     @staticmethod
     def lin_func(a):
@@ -117,10 +117,10 @@ class KUZ:
         input 128-bit divided into 16 sections
         output multiplication between the 16 input sections and predefined mult array
         """
-        mult_arr = KUZ.LIN_VEC.copy()
+        mult_arr = Kuznechik.LIN_VEC.copy()
         y = 0
         while a != 0:
-            y ^= KUZ.mult_mod(a & 0xff, mult_arr.pop())
+            y ^= Kuznechik.mult_mod(a & 0xff, mult_arr.pop())
             a >>= 8
         return y
 
@@ -131,14 +131,14 @@ class KUZ:
         applies the kuz linear function multiplication and puts it as the 8 most significant bits xor input itself
         performing this 16 times gives us the linear function multiplication over the whole 128 bits
         """
-        return (KUZ.lin_func(a) << 120) ^ (a >> 8)
+        return (Kuznechik.lin_func(a) << 120) ^ (a >> 8)
 
     @staticmethod
     def inv_r_func(a):
         """R inverse function from the kuz algorithm"""
         a2 = a >> 120
         a = (a << 8) & (2 ** 128 - 1)
-        return KUZ.lin_func(a ^ a2) ^ a
+        return Kuznechik.lin_func(a ^ a2) ^ a
 
     @staticmethod
     def l_func(a):
@@ -146,7 +146,7 @@ class KUZ:
         repeats the r function 16 times over input
         """
         for i in range(16):
-            a = KUZ.r_func(a)
+            a = Kuznechik.r_func(a)
         return a
 
     @staticmethod
@@ -155,7 +155,7 @@ class KUZ:
         repeats the r function 16 times over input
         """
         for i in range(16):
-            a = KUZ.inv_r_func(a)
+            a = Kuznechik.inv_r_func(a)
         return a
 
     """Encryption Algorithm"""
@@ -165,7 +165,7 @@ class KUZ:
         """f function from the kuz algorithm
         runs the substitution and linear transform for keys generation
         returns a tuple of keys"""
-        return KUZ.l_func(KUZ.sub_bytes(a1 ^ c)) ^ a2, a1
+        return Kuznechik.l_func(Kuznechik.sub_bytes(a1 ^ c)) ^ a2, a1
 
     @staticmethod
     def key_generator(key):
@@ -185,79 +185,101 @@ class KUZ:
         # other keys are derived from the kuz linear function over 1..32
         c = []
         for i in range(32):
-            c.append(KUZ.l_func(i + 1))
+            c.append(Kuznechik.l_func(i + 1))
 
         # keys generated in pairs from kuz f function
         for i in range(4):
             # iterate over 8 pairs and then add to keys list
             for j in range(8):
-                (k1, k2) = KUZ.f_func(k1, k2, c[8 * i + j])
+                (k1, k2) = Kuznechik.f_func(k1, k2, c[8 * i + j])
             keys.append(k1)
             keys.append(k2)
 
         return keys
 
     @staticmethod
-    def encrypt_block(data, key):
+    def encrypt_block(block, key):
         """The plain data block is 128-bits
-        The key is 256-bits
+        Key is 256-bits
         """
-        kuz_keys = KUZ.key_generator(key)
+        kuz_keys = Kuznechik.key_generator(key)
         for i in range(9):
-            data = KUZ.sub_bytes(data ^ kuz_keys[i])
-            data = KUZ.l_func(data)
-        return data ^ kuz_keys[-1]
+            block = Kuznechik.sub_bytes(block ^ kuz_keys[i])
+            block = Kuznechik.l_func(block)
+        return block ^ kuz_keys[-1]
 
     @staticmethod
-    def decrypt_block(data, key):
+    def decrypt_block(block, key):
         """The cipher data block is 128-bits
-        The key is 256-bits
+        Key is 256-bits
         """
-        kuz_keys = KUZ.key_generator(key)
+        kuz_keys = Kuznechik.key_generator(key)
         kuz_keys.reverse()
         for i in range(9):
-            data = KUZ.inv_l_func(data ^ kuz_keys[i])
-            data = KUZ.inv_sub_bytes(data)
-        return data ^ kuz_keys[-1]
+            block = Kuznechik.inv_l_func(block ^ kuz_keys[i])
+            block = Kuznechik.inv_sub_bytes(block)
+        return block ^ kuz_keys[-1]
+
+    @staticmethod
+    def encrypt(data, key):
+        """Plain data is any utf-8 string to encrypt
+        Key is 256-bits
+        Returns encrypted hex string
+        """
+        # if data is string encode as bytes array
+        if type(data) is str:
+            data = data.encode('utf-8')
+
+        # add padding
+        while len(data) % 16 != 0:
+            data += ' '.encode('utf-8')
+
+        # plaintext blocks construction
+        pt_blocks = []
+        for i in range(0, len(data), 16):
+            pt_blocks.append(int.from_bytes(data[i:i + 16], 'big'))
+
+        # ciphertext blocks encryption
+        ct_blocks = []
+        encrypted = ""
+        for i in range(len(pt_blocks)):
+            ct_blocks.append(Kuznechik.encrypt_block(pt_blocks[i], key))
+            encrypted += f'{ct_blocks[i]:x}'
+
+        return encrypted
+
+    @staticmethod
+    def decrypt(data, key):
+        # ciphertext blocks construction
+        data = data.encode('utf-8')
+        block_size = 32
+        ct_blocks = []
+        for i in range(0, len(data), block_size):
+            ct_blocks.append(int(data[i:i + block_size], 16))
+
+        # ciphertext blocks decryption and decoding
+        dt_blocks = []
+        decoded = ""
+        for i in range(len(ct_blocks)):
+            dt_blocks.append(Kuznechik.decrypt_block(ct_blocks[i], key))
+            decoded += dt_blocks[i].to_bytes(16, 'big').decode('utf-8')
+
+        return decoded
 
 
 if __name__ == "__main__":
     # plaintext
-    plaintext = ('This is a very long plain text there '
-                 'is no way this fits into one single chunk. '
-                 'I should write a whole paragraph in here just '
-                 'to be sure. Please encrypt this!').encode('utf-8')
-
-    block_size = 16
+    plaintext = ("Dear reader, this is a heartfelt email sent to you encrypted and signed in the most"
+                 "secure manner possible. This message uses asymmetric ECDH key exchange so that we"
+                 "will both have the same shared key for when you open and read this message. The message"
+                 "itself was encrypted using the symmetric Kuznechik encryption algorithm. And finally,"
+                 "I signed this message with an El Gamal signature so that you know you're receiving"
+                 "this message from me and not anyone else. Thanks for reading, yours truly, the writer.")
 
     # key
-    k = int('8899aabbccddeeff0011223344556677fedcba98765432100123456789abcdef', 16)
+    shared_key = int('8899aabbccddeeff0011223344556677fedcba98765432100123456789abcdef', 16)
 
-    # padding
-    while len(plaintext) % block_size != 0:
-        plaintext += ' '.encode('utf-8')
-
-    pt_blocks = []
-    for i in range(0, len(plaintext), block_size):
-        pt_blocks.append(int.from_bytes(plaintext[i:i + block_size], 'big'))
-
-    ct_blocks = []
-    dt_blocks = []
-
-    print('plaintext:', plaintext)
-
-    # encryption
-    encrypted = ""
-    for i in range(len(pt_blocks)):
-        ct_blocks.append(KUZ.encrypt_block(pt_blocks[i], k))
-        encrypted += f'{ct_blocks[i]:x}'
-
-    print('encrypted:', encrypted)
-
-    # decryption
-    decoded = ""
-    for i in range(len(ct_blocks)):
-        dt_blocks.append(KUZ.decrypt_block(ct_blocks[i], k))
-        decoded += dt_blocks[i].to_bytes(block_size, 'big').decode('utf-8')
-
-    print('decrypted:', decoded)
+    ciphertext = Kuznechik.encrypt(plaintext, shared_key)
+    print('REAL encrypted:', ciphertext)
+    decrypted = Kuznechik.decrypt(ciphertext, shared_key)
+    print('REAL decrypted:', decrypted)

@@ -163,6 +163,7 @@ class Kuznechik:
     @staticmethod
     def f_func(a1, a2, c):
         """f function from the kuz algorithm
+        a1, a2 are keys and c is a constant
         runs the substitution and linear transform for keys generation
         returns a tuple of keys"""
         return Kuznechik.l_func(Kuznechik.sub_bytes(a1 ^ c)) ^ a2, a1
@@ -269,11 +270,11 @@ class Kuznechik:
 
 if __name__ == "__main__":
     # plaintext
-    plaintext = ("Dear reader, this is a heartfelt email sent to you encrypted and signed in the most"
-                 "secure manner possible. This message uses asymmetric ECDH key exchange so that we"
-                 "will both have the same shared key for when you open and read this message. The message"
-                 "itself was encrypted using the symmetric Kuznechik encryption algorithm. And finally,"
-                 "I signed this message with an El Gamal signature so that you know you're receiving"
+    plaintext = ("Dear reader, this is a heartfelt email sent to you encrypted and signed in the most "
+                 "secure manner possible. This message uses asymmetric ECDH key exchange so that we "
+                 "will both have the same shared key for when you open and read this message. The message "
+                 "itself was encrypted using the symmetric Kuznechik encryption algorithm. And finally, "
+                 "I signed this message with an El Gamal signature so that you know you're receiving "
                  "this message from me and not anyone else. Thanks for reading, yours truly, the writer.")
 
     # key

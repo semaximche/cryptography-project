@@ -97,13 +97,14 @@ class DigitalSignature:
 # Example Usage
 if __name__ == "__main__":
     generator = Generator()
-    p= 467 #choose big number
+    p= 42863 #choose big number
     g= generator.find_generator(p)
     ds = DigitalSignature(p,g)
     ds.key_generation()
     message = "hello world"
 
     r, s = ds.sign_message(message)
+    print(f"Public key:{ds.public_key}")
     print(f"Message: {message}")
     print(f"Signature: (r={r}, s={s})")
 

@@ -6,12 +6,9 @@ from kuz_encryption import Kuznechik
 
 if __name__ == "__main__":
     sender_private_encryption_key = 0
-    sender_public_encryption_key = 0
-    recipient_private_encryption_key = 0
     recipient_public_encryption_key = 0
     sender_private_signature_key = 0
     sender_public_signature_key = 0
-    recipient_private_signature_key = 0
     recipient_public_signature_key = 0
 
     # El Gamal Setup
@@ -26,21 +23,15 @@ if __name__ == "__main__":
         for line in lines:
             index = line.find('=')
             if line[:index] == "SENDER_ENCRYPTION_PRIVATE_KEY":
-                sender_private_encryption_key = ast.literal_eval(line[index+1:])
-            elif line[:index] == "SENDER_ENCRYPTION_PUBLIC_KEY":
-                sender_public_encryption_key = ast.literal_eval(line[index+1:])
-            elif line[:index] == "RECIPIENT_ENCRYPTION_PRIVATE_KEY":
-                recipient_private_encryption_key = ast.literal_eval(line[index+1:])
+                sender_private_encryption_key = ast.literal_eval(line[index+1:])        # NEED THIS
             elif line[:index] == "RECIPIENT_ENCRYPTION_PUBLIC_KEY":
-                recipient_public_encryption_key = ast.literal_eval(line[index+1:])
+                recipient_public_encryption_key = ast.literal_eval(line[index+1:])      # NEED THIS
             elif line[:index] == "SENDER_SIGNATURE_PRIVATE_KEY":
-                sender_private_signature_key = ast.literal_eval(line[index + 1:])
+                sender_private_signature_key = ast.literal_eval(line[index + 1:])       # NEED THIS
             elif line[:index] == "SENDER_SIGNATURE_PUBLIC_KEY":
-                sender_public_signature_key = ast.literal_eval(line[index + 1:])
-            elif line[:index] == "RECIPIENT_SIGNATURE_PRIVATE_KEY":
-                recipient_private_signature_key = ast.literal_eval(line[index+1:])
+                sender_public_signature_key = ast.literal_eval(line[index + 1:])        # NEED THIS
             elif line[:index] == "RECIPIENT_SIGNATURE_PUBLIC_KEY":
-                recipient_public_signature_key = ast.literal_eval(line[index+1:])
+                recipient_public_signature_key = ast.literal_eval(line[index+1:])       # NEED THIS
 
     # Get shared key
     shared_symmetric_key = int.from_bytes(ECDHKeyExchange.compute_shared_secret(sender_private_encryption_key,
@@ -55,6 +46,7 @@ if __name__ == "__main__":
     choice = input("Enter your choice: ")
 
     if choice == "1":
+        # Encrypt and sign message option
         print("--------------------")
         message = input("Enter message to encrypt:")
         print("--------------------")
@@ -70,6 +62,7 @@ if __name__ == "__main__":
         print(encrypted_message)
 
     if choice == "2":
+        # Decrypt and validate message option
         print("--------------------")
         message = input("Enter message to decrypt:")
         print("--------------------")
@@ -78,17 +71,17 @@ if __name__ == "__main__":
         r = int(message[message.find(":")+1:message.find(",")])
         s = int(message[message.find(",")+1:])
         message = message[:message.find(":")]
-        print(r, s)
-        ds.private_key = sender_private_signature_key
-        ds.public_key = sender_public_signature_key
+        ds.public_key = recipient_public_signature_key
         is_valid = ds.verify_signature(message, r, s)
         print(f"Signature Validation: {is_valid}")
 
         # Decrypt
-        decrypted_message = Kuznechik.decrypt(message, shared_symmetric_key)
-        print(decrypted_message)
+        if is_valid:
+            decrypted_message = Kuznechik.decrypt(message, shared_symmetric_key)
+            print(decrypted_message)
 
     if choice == "3":
+        # Generate keys option
         print("--------------------")
         print("Generating 2 pairs of ECDH keys:")
         for i in range(2):

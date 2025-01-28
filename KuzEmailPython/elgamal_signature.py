@@ -32,9 +32,6 @@ class DigitalSignature:
         self.private_key = None
         self.public_key = None
 
-
-
-
     def hash_message(self, message):
         # Hash the message using SHA-256 and convert to an integer
         # hashed = int(hashlib.sha256(message.encode()).hexdigest(), 16)

@@ -117,7 +117,7 @@ class Kuznechik:
     @staticmethod
     def lin_func(a):
         """linear transformation of kuz
-        input 128-bit divided into 16 sections
+        input 128-bit divided into 16 sections of 8 bits
         output multiplication between the 16 input sections and predefined mult array
         """
         mult_arr = Kuznechik.LIN_VEC.copy()
@@ -206,6 +206,7 @@ class Kuznechik:
         """The plain data block is 128-bits
         Key is 256-bits
         """
+
         kuz_keys = Kuznechik.key_generator(key)
         for i in range(9):
             block = Kuznechik.sub_bytes(block ^ kuz_keys[i])
@@ -243,11 +244,8 @@ class Kuznechik:
         for i in range(0, len(data), 16):
             pt_blocks.append(int.from_bytes(data[i:i + 16], 'big'))
 
-        print("pt size:", len(pt_blocks))
-
         # cbc mode iv generation ensure cbc_iv is exactly 128 bits
         cbc_iv = random.getrandbits(128) | 2 ** 127
-        print(hex(cbc_iv))
 
         # ciphertext blocks encryption
         ct_blocks = [cbc_iv]
@@ -262,9 +260,6 @@ class Kuznechik:
         # construct encrypted message
         for i in range(len(ct_blocks)):
             encrypted += f'{ct_blocks[i]:x}'
-            print("block size", Kuznechik.count_bits(ct_blocks[i]))
-
-        print("ct size:", len(ct_blocks))
 
         return encrypted
 
@@ -277,8 +272,6 @@ class Kuznechik:
         for i in range(0, len(data), block_size):
             ct_blocks.append(int(data[i:i + block_size], 16))
 
-        print("ct size:", len(ct_blocks))
-
         # ciphertext blocks decryption and decoding
         dt_blocks = []
         decoded = ""
@@ -287,8 +280,6 @@ class Kuznechik:
 
             #cbc mode xor with previous ciphertext
             dt_blocks[i - 1] ^= ct_blocks[i - 1]
-
-        print("dt size:", len(dt_blocks))
 
         # decode message
         for i in range(len(dt_blocks)):
@@ -299,13 +290,12 @@ class Kuznechik:
 
 if __name__ == "__main__":
     # plaintext
-    plaintext = ("Lorem ipsum dolor sit amet, consectetur adipscing elit. Maecenas lacus magna, lobortis et enimm ut.")
+    plaintext = ("Lorem ipsum. Very long message here, make it even longer")
 
     # key
     shared_key = int('8899aabbccddeeff0011223344556677fedcba98765432100123456789abcdef', 16)
 
     ciphertext = Kuznechik.encrypt(plaintext, shared_key)
     print('REAL encrypted:', ciphertext)
-    print('length:', len(ciphertext)/32)
     decrypted = Kuznechik.decrypt(ciphertext, shared_key)
     print('REAL decrypted:', decrypted)

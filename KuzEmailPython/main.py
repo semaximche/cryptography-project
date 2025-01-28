@@ -5,14 +5,14 @@ from elgamal_signature import Generator, DigitalSignature
 from kuz_encryption import Kuznechik
 
 if __name__ == "__main__":
-    sender_private_encryption_key = -1
-    sender_public_encryption_key = -1
-    recipient_private_encryption_key = -1
-    recipient_public_encryption_key = -1
-    sender_private_signature_key = -1
-    sender_public_signature_key = -1
-    recipient_private_signature_key = -1
-    recipient_public_signature_key = -1
+    sender_private_encryption_key = 0
+    sender_public_encryption_key = 0
+    recipient_private_encryption_key = 0
+    recipient_public_encryption_key = 0
+    sender_private_signature_key = 0
+    sender_public_signature_key = 0
+    recipient_private_signature_key = 0
+    recipient_public_signature_key = 0
 
     # El Gamal Setup
     generator = Generator()

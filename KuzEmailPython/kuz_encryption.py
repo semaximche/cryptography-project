@@ -1,3 +1,6 @@
+import random
+
+
 class Kuznechik:
     # kuznechik's pi s-boxes as specified
     PI = [252, 238, 221, 17, 207, 110, 49, 22, 251, 196, 250, 218, 35, 197, 4, 77,
@@ -240,12 +243,28 @@ class Kuznechik:
         for i in range(0, len(data), 16):
             pt_blocks.append(int.from_bytes(data[i:i + 16], 'big'))
 
+        print("pt size:", len(pt_blocks))
+
+        # cbc mode iv generation ensure cbc_iv is exactly 128 bits
+        cbc_iv = random.getrandbits(128) | 2 ** 127
+        print(hex(cbc_iv))
+
         # ciphertext blocks encryption
-        ct_blocks = []
+        ct_blocks = [cbc_iv]
         encrypted = ""
         for i in range(len(pt_blocks)):
+            # cbc mode xor with previous ciphertext
+            pt_blocks[i] = pt_blocks[i] ^ ct_blocks[i]
+
+            # append to blocks list
             ct_blocks.append(Kuznechik.encrypt_block(pt_blocks[i], key))
+
+        # construct encrypted message
+        for i in range(len(ct_blocks)):
             encrypted += f'{ct_blocks[i]:x}'
+            print("block size", Kuznechik.count_bits(ct_blocks[i]))
+
+        print("ct size:", len(ct_blocks))
 
         return encrypted
 
@@ -258,11 +277,21 @@ class Kuznechik:
         for i in range(0, len(data), block_size):
             ct_blocks.append(int(data[i:i + block_size], 16))
 
+        print("ct size:", len(ct_blocks))
+
         # ciphertext blocks decryption and decoding
         dt_blocks = []
         decoded = ""
-        for i in range(len(ct_blocks)):
+        for i in range(1, len(ct_blocks)):
             dt_blocks.append(Kuznechik.decrypt_block(ct_blocks[i], key))
+
+            #cbc mode xor with previous ciphertext
+            dt_blocks[i - 1] ^= ct_blocks[i - 1]
+
+        print("dt size:", len(dt_blocks))
+
+        # decode message
+        for i in range(len(dt_blocks)):
             decoded += dt_blocks[i].to_bytes(16, 'big').decode('utf-8')
 
         return decoded
@@ -270,17 +299,13 @@ class Kuznechik:
 
 if __name__ == "__main__":
     # plaintext
-    plaintext = ("Dear reader, this is a heartfelt email sent to you encrypted and signed in the most "
-                 "secure manner possible. This message uses asymmetric ECDH key exchange so that we "
-                 "will both have the same shared key for when you open and read this message. The message "
-                 "itself was encrypted using the symmetric Kuznechik encryption algorithm. And finally, "
-                 "I signed this message with an El Gamal signature so that you know you're receiving "
-                 "this message from me and not anyone else. Thanks for reading, yours truly, the writer.")
+    plaintext = ("Lorem ipsum dolor sit amet, consectetur adipscing elit. Maecenas lacus magna, lobortis et enimm ut.")
 
     # key
     shared_key = int('8899aabbccddeeff0011223344556677fedcba98765432100123456789abcdef', 16)
 
     ciphertext = Kuznechik.encrypt(plaintext, shared_key)
     print('REAL encrypted:', ciphertext)
+    print('length:', len(ciphertext)/32)
     decrypted = Kuznechik.decrypt(ciphertext, shared_key)
     print('REAL decrypted:', decrypted)
